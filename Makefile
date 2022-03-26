@@ -1,0 +1,28 @@
+.PHONY: build buildD runD buildC runC cleanO clean cleanC cleanD
+
+all: build
+
+build: buildC buildD
+
+buildD: 
+	@go build -o build/decoder/decoder cmd/decoder/decoder.go
+
+runD:
+	@./build/decoder/decoder
+
+buildC: 
+	@go build -o build/coder/coder cmd/coder/coder.go
+
+runC:
+	@./build/coder/coder
+
+cleanO: 
+	@rm data/output/*
+
+cleanD:
+	@rm build/decoder/*
+
+cleanC:
+	@rm build/coder/*
+
+clean: cleanC cleanD
