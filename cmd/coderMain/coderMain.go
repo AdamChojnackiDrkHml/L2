@@ -1,19 +1,18 @@
 package main
 
 import (
-	"fmt"
+	"l2/pkg/coder"
 	"l2/pkg/reader"
 	"l2/pkg/writer"
-	"os"
 )
 
 func main() {
-	fmt.Println(os.Getwd())
 	reader := reader.Reader_createReader("data/input/test")
 	writer := writer.Writer_createReader("data/output/test")
-	patch, readCounter := reader.Reader_readDataPatch()
-	writer.Writer_writeToFile(patch)
-	fmt.Println(patch)
-	fmt.Println(readCounter)
+
+	coder := coder.Coder_createCoder(reader, writer)
+
+	coder.Coder_run()
+
 	writer.CloseFile()
 }

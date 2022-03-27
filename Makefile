@@ -5,13 +5,13 @@ all: build
 build: buildC buildD
 
 buildD: 
-	@go build -o build/decoder/decoder cmd/decoder/decoder.go
+	@go build -o build/decoder/decoder cmd/decoderMain/decoderMain.go
 
 runD:
 	@./build/decoder/decoder
 
 buildC: 
-	@go build -o build/coder/coder cmd/coder/coder.go
+	@go build -o build/coder/coder cmd/coderMain/coderMain.go
 
 runC:
 	@./build/coder/coder

@@ -27,8 +27,8 @@ func Writer_createReader(path string) *Writer {
 	return writer
 }
 
-func (writer *Writer) Writer_writeToFile(content []byte) {
-	_, err := writer.file.Write(content)
+func (writer *Writer) Writer_writeToFile(content string) {
+	_, err := writer.file.WriteString(content)
 
 	if err != nil {
 		panic(err)

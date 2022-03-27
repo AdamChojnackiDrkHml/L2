@@ -6,8 +6,11 @@ import (
 )
 
 type Reader struct {
-	path string
-	file *os.File
+	path               string
+	file               *os.File
+	PatchSize          int64
+	ReadSymbolsCounter int
+	IsReading          bool
 }
 
 func Print(a string) {
@@ -26,31 +29,33 @@ func (reader *Reader) openFile() {
 }
 
 func Reader_createReader(path string) *Reader {
-	reader := &Reader{path: path}
+	reader := &Reader{path: path, PatchSize: 256, IsReading: true}
 
 	reader.openFile()
 
 	return reader
 }
 
-func (reader *Reader) Reader_readDataPatch() ([]byte, int) {
+func (reader *Reader) Reader_readDataPatch() []byte {
 
 	symbols := make([]byte, 0)
 	readCounter := 0
+
 	for i := 0; i < 256; i++ {
 		currSymbol := make([]byte, 1)
 		control, _ := reader.file.Read(currSymbol)
 
 		if control == 0 {
 			reader.closeFile()
+			reader.IsReading = false
 			break
 		}
 
 		symbols = append(symbols, currSymbol...)
 		readCounter++
 	}
-
-	return symbols, readCounter
+	reader.ReadSymbolsCounter = readCounter
+	return symbols
 }
 
 func (reader *Reader) closeFile() {
