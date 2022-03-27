@@ -29,7 +29,7 @@ func (reader *Reader) openFile() {
 }
 
 func Reader_createReader(path string) *Reader {
-	reader := &Reader{path: path, PatchSize: 256, IsReading: true}
+	reader := &Reader{path: path, PatchSize: 64, IsReading: true}
 
 	reader.openFile()
 
@@ -41,7 +41,7 @@ func (reader *Reader) Reader_readDataPatch() []byte {
 	symbols := make([]byte, 0)
 	readCounter := 0
 
-	for i := 0; i < 256; i++ {
+	for i := 0; i < 64; i++ {
 		currSymbol := make([]byte, 1)
 		control, _ := reader.file.Read(currSymbol)
 

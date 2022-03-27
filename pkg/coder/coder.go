@@ -22,8 +22,8 @@ type Coder struct {
 func Coder_createCoder(reader *reader.Reader, writer *writer.Writer) *Coder {
 	coder := &Coder{reader: reader,
 		writer:         writer,
-		probsF:         make([]decimal.Decimal, 257),
-		counterSymbols: make([]int64, 256),
+		probsF:         make([]decimal.Decimal, 65),
+		counterSymbols: make([]int64, 64),
 		iterations:     0,
 		currentPatch:   make([]byte, 0),
 		lastPatch:      false}
@@ -61,11 +61,6 @@ func (coder *Coder) getData() {
 	coder.lastPatch = !coder.reader.IsReading
 }
 
-func (coder *Coder) prepareAllDataToCoding() {
-	coder.getData()
-	coder.calcProbs()
-}
-
 func (coder *Coder) writeCode() {
 	coder.writer.Writer_writeToFile(strconv.Itoa(len(coder.currentPatch)) + " " + coder.tag.String() + "\n")
 }
@@ -74,6 +69,8 @@ func (coder *Coder) code() {
 
 	l := decimal.NewFromInt(0)
 	p := decimal.NewFromInt(1)
+	prefix := make([]int64, 0)
+	counter := 0
 
 	for _, n := range coder.currentPatch {
 		d := p.Sub(l)
@@ -83,19 +80,72 @@ func (coder *Coder) code() {
 		for p.LessThan(decimal.NewFromFloat(0.5)) {
 			l = l.Mul(decimal.NewFromInt(2))
 			p = p.Mul(decimal.NewFromInt(2))
+
+			for counter > 0 {
+				prefix = append(prefix, 1)
+				counter--
+			}
+			prefix = append(prefix, 0)
+		}
+
+		for decimal.NewFromFloat(0.5).LessThanOrEqual(l) {
+			l = l.Mul(decimal.NewFromInt(2)).Sub(decimal.NewFromInt(1))
+			p = p.Mul(decimal.NewFromInt(2)).Sub(decimal.NewFromInt(1))
+
+			for counter > 0 {
+				prefix = append(prefix, 0)
+				counter--
+			}
+			prefix = append(prefix, 1)
+		}
+
+		for caseThreeCondtionCheck(l, p) {
+			l = l.Mul(decimal.NewFromInt(2)).Sub(decimal.NewFromFloat(0.5))
+			p = p.Mul(decimal.NewFromInt(2)).Sub(decimal.NewFromFloat(0.5))
+			counter++
 		}
 	}
-	// fmt.Println(l.String())
-	// fmt.Println(p.String())
-	coder.tag = l.Add(p)
-	coder.tag = coder.tag.Div(decimal.NewFromFloat(2.0))
 
+	coder.tag = l.Add(p)
+	coder.tag = coder.tag.Mul(decimal.NewFromFloat(0.5))
+
+	coder.scaleTag(prefix)
+}
+
+func (coder *Coder) scaleTag(bits []int64) {
+
+	for _, n := range bits {
+		coder.tag = coder.tag.Add(decimal.NewFromInt(1 * n))
+		coder.tag = coder.tag.Mul(decimal.NewFromFloat(0.5))
+
+	}
+}
+
+func caseThreeCondtionCheck(l, p decimal.Decimal) bool {
+	if p.LessThanOrEqual(decimal.NewFromFloat(0.5)) {
+		return false
+	}
+
+	if decimal.NewFromFloat(0.5).LessThanOrEqual(l) {
+		return false
+	}
+
+	if decimal.NewFromFloat(0.75).LessThanOrEqual(p) {
+		return false
+	}
+
+	if l.LessThan(decimal.NewFromFloat(0.25)) {
+		return false
+	}
+
+	return true
 }
 
 func (coder *Coder) Coder_run() {
 	for !coder.lastPatch {
-		coder.prepareAllDataToCoding()
+		coder.getData()
 		coder.code()
 		coder.writeCode()
+		coder.calcProbs()
 	}
 }

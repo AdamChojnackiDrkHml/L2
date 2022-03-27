@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Mar 27 13:08:09 2022
+# Make data base, printed on Sun Mar 27 19:39:41 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ GTK_RC_FILES = /etc/gtk/gtkrc:/home/adam/.gtkrc:/home/adam/.config/gtkrc
 # environment
 UUID = 57672b51-20f4-4a1c-ae42-c7b14c30d62c
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-02f2012b-71c8-4ade-8271-56de88f741d2.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-b3e95f7c-f360-4a74-8d03-9d5262e4209b.sock
 # environment
 LC_NAME = pl_PL.UTF-8
 # environment
@@ -107,13 +107,13 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 2020
+VSCODE_PID = 2130
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
-SESSION_MANAGER = local/adam-b550aoruselitev2:@/tmp/.ICE-unix/863,unix/adam-b550aoruselitev2:/tmp/.ICE-unix/863
+SESSION_MANAGER = local/adam-b550aoruselitev2:@/tmp/.ICE-unix/839,unix/adam-b550aoruselitev2:/tmp/.ICE-unix/839
 # automatic
 *F = $(notdir $*)
 # environment
@@ -179,7 +179,7 @@ XDG_VTNR = 1
 # makefile
 .DEFAULT_GOAL := all
 # environment
-SYSTEMD_EXEC_PID = 744
+SYSTEMD_EXEC_PID = 725
 # environment
 DISPLAY = :0
 # environment
@@ -251,9 +251,9 @@ LC_IDENTIFICATION = pl_PL.UTF-8
 
 # Directories
 
-# . (device 2053, inode 8654458): 10 files, no impossibilities.
+# . (device 2053, inode 8654458): 12 files, no impossibilities.
 
-# 10 files, no impossibilities in 1 directories.
+# 12 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -283,15 +283,15 @@ buildD:
 #  File does not exist.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 8):
-	@go build -o build/decoder/decoder cmd/decoder/decoder.go
+	@go build -o build/decoder/decoder cmd/decoderMain/decoderMain.go
 
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
- 
-#  Last modified 2022-03-26 21:15:22.811178609
+#  Last modified 2022-03-27 15:21:31.44448499
 #  File has been updated.
 #  Successfully updated.
+ 
 
 clean: cleanC cleanD
 #  Phony target (prerequisite of .PHONY).
@@ -325,7 +325,7 @@ buildC:
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/11=9%
 #  recipe to execute (from 'Makefile', line 14):
-	@go build -o build/coder/coder cmd/coder/coder.go
+	@go build -o build/coder/coder cmd/coderMain/coderMain.go
 
 # Not a target:
 .DEFAULT:
@@ -394,12 +394,12 @@ cleanO:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 24 / storage = 166 B / avg = 6 B
-# current buf: size = 8162 B / used = 166 B / count = 24 / avg = 6 B
+# strcache buffers: 1 (0) / strings = 26 / storage = 180 B / avg = 6 B
+# current buf: size = 8162 B / used = 180 B / count = 26 / avg = 6 B
 
-# strcache performance: lookups = 56 / hit rate = 57%
+# strcache performance: lookups = 58 / hit rate = 55%
 # hash-table stats:
-# Load=24/8192=0%, Rehash=0, Collisions=0/56=0%
-# Finished Make data base on Sun Mar 27 13:08:09 2022
+# Load=26/8192=0%, Rehash=0, Collisions=0/58=0%
+# Finished Make data base on Sun Mar 27 19:39:41 2022
 
  
