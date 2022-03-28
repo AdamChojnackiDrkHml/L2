@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Mar 27 19:39:41 2022
+# Make data base, printed on Tue Mar 29 01:38:07 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ GTK_RC_FILES = /etc/gtk/gtkrc:/home/adam/.gtkrc:/home/adam/.config/gtkrc
 # environment
 UUID = 57672b51-20f4-4a1c-ae42-c7b14c30d62c
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-b3e95f7c-f360-4a74-8d03-9d5262e4209b.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-ebc09e1c-19b1-403f-b3a9-d32e54710803.sock
 # environment
 LC_NAME = pl_PL.UTF-8
 # environment
@@ -44,6 +44,7 @@ GOPATH = /home/adam/go
 @D = $(patsubst %/,%,$(dir $@))
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+ 
 # default
 .VARIABLES := 
 # environment
@@ -107,13 +108,13 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 2130
+VSCODE_PID = 1514
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
-SESSION_MANAGER = local/adam-b550aoruselitev2:@/tmp/.ICE-unix/839,unix/adam-b550aoruselitev2:/tmp/.ICE-unix/839
+SESSION_MANAGER = local/adam-b550aoruselitev2:@/tmp/.ICE-unix/857,unix/adam-b550aoruselitev2:/tmp/.ICE-unix/857
 # automatic
 *F = $(notdir $*)
 # environment
@@ -179,7 +180,7 @@ XDG_VTNR = 1
 # makefile
 .DEFAULT_GOAL := all
 # environment
-SYSTEMD_EXEC_PID = 725
+SYSTEMD_EXEC_PID = 738
 # environment
 DISPLAY = :0
 # environment
@@ -290,8 +291,8 @@ Makefile:
 #  Implicit rule search has been done.
 #  Last modified 2022-03-27 15:21:31.44448499
 #  File has been updated.
-#  Successfully updated.
  
+#  Successfully updated.
 
 clean: cleanC cleanD
 #  Phony target (prerequisite of .PHONY).
@@ -400,6 +401,6 @@ cleanO:
 # strcache performance: lookups = 58 / hit rate = 55%
 # hash-table stats:
 # Load=26/8192=0%, Rehash=0, Collisions=0/58=0%
-# Finished Make data base on Sun Mar 27 19:39:41 2022
+# Finished Make data base on Tue Mar 29 01:38:07 2022
 
  

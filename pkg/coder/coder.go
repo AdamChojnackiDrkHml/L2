@@ -17,19 +17,25 @@ type Coder struct {
 	currentPatch   []byte
 	lastPatch      bool
 	tag            decimal.Decimal
+	w              string
 }
 
 func Coder_createCoder(reader *reader.Reader, writer *writer.Writer) *Coder {
 	coder := &Coder{reader: reader,
 		writer:         writer,
-		probsF:         make([]decimal.Decimal, 65),
-		counterSymbols: make([]int64, 64),
+		probsF:         make([]decimal.Decimal, 257),
+		counterSymbols: make([]int64, 256),
 		iterations:     0,
 		currentPatch:   make([]byte, 0),
 		lastPatch:      false}
 
+	for i := range coder.counterSymbols {
+		coder.counterSymbols[i] = 1
+	}
+
 	for i := range coder.probsF {
-		coder.probsF[i] = decimal.NewFromInt(1).Div(decimal.NewFromInt(reader.PatchSize)).Mul(decimal.NewFromInt(int64(i + 1)))
+		coder.probsF[i] = decimal.NewFromInt(1).Div(decimal.NewFromInt(256)).Mul(decimal.NewFromInt(int64(i)))
+		coder.w = coder.probsF[i].String()
 	}
 
 	coder.probsF[len(coder.probsF)-1] = decimal.NewFromInt(1)
@@ -44,13 +50,14 @@ func (coder *Coder) calcProbs() {
 		coder.counterSymbols[n]++
 	}
 
-	allSymbolsCounter := int64(iterations)*int64(coder.reader.PatchSize) + int64(coder.reader.ReadSymbolsCounter)
+	allSymbolsCounter := int64(iterations)*int64(coder.reader.PatchSize) + int64(coder.reader.ReadSymbolsCounter) + 256
 
 	coder.probsF[0] = decimal.NewFromInt(coder.counterSymbols[0]).Div(decimal.NewFromInt(allSymbolsCounter))
 
 	for i := 1; i < len(coder.counterSymbols); i++ {
 		temp := decimal.NewFromInt(coder.counterSymbols[i]).Div(decimal.NewFromInt(allSymbolsCounter))
 		coder.probsF[i] = coder.probsF[i-1].Add(temp)
+		//fmt.Println(coder.probsF[i].String())
 	}
 
 	coder.iterations++
@@ -74,12 +81,20 @@ func (coder *Coder) code() {
 
 	for _, n := range coder.currentPatch {
 		d := p.Sub(l)
+		//fmt.Println(d.String())
+		//fmt.Println(coder.probsF[n+1])
 		p = l.Add(coder.probsF[n+1].Mul(d))
-		l = coder.probsF[n].Mul(d)
+		//fmt.Println(p.String())
 
+		l = l.Add(coder.probsF[n].Mul(d))
+		//fmt.Println(l.String())
+		s := l.String()
+		s = coder.probsF[n].String()
 		for p.LessThan(decimal.NewFromFloat(0.5)) {
 			l = l.Mul(decimal.NewFromInt(2))
 			p = p.Mul(decimal.NewFromInt(2))
+			//fmt.Println(p.String())
+			//fmt.Println(l.String())
 
 			for counter > 0 {
 				prefix = append(prefix, 1)
@@ -87,9 +102,10 @@ func (coder *Coder) code() {
 			}
 			prefix = append(prefix, 0)
 		}
-
+		s = l.String()
 		for decimal.NewFromFloat(0.5).LessThanOrEqual(l) {
 			l = l.Mul(decimal.NewFromInt(2)).Sub(decimal.NewFromInt(1))
+			s = l.String()
 			p = p.Mul(decimal.NewFromInt(2)).Sub(decimal.NewFromInt(1))
 
 			for counter > 0 {
@@ -97,6 +113,7 @@ func (coder *Coder) code() {
 				counter--
 			}
 			prefix = append(prefix, 1)
+			coder.w = s
 		}
 
 		for caseThreeCondtionCheck(l, p) {
