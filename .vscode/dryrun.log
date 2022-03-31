@@ -1,6 +1,4 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/home/adam/Uczelnia/VISEM/KKD/L2'
-go build -o build/coder/coder cmd/coderMain/coderMain.go
-go build -o build/decoder/decoder cmd/decoderMain/decoderMain.go
-make: Leaving directory '/home/adam/Uczelnia/VISEM/KKD/L2'
+make.exe --dry-run --always-make --keep-going --print-directory
+'make.exe' is not recognized as an internal or external command,
+operable program or batch file.
  
