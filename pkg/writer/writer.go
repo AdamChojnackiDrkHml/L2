@@ -10,8 +10,7 @@ type Writer struct {
 }
 
 func (writer *Writer) openOrCreateFile() {
-	file, err := os.OpenFile(writer.path, os.O_CREATE|os.O_WRONLY, 0644)
-
+	file, err := os.OpenFile(writer.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		panic(err)
 	}

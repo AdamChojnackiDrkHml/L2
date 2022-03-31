@@ -8,7 +8,7 @@
             "name": "KKDL2",
             "type": "go",
             "request": "launch",
-            "program": "${file}",
+            "program": "${fileDirname}/../../cmd/coderMain/coderMain.go",
             "console": "integratedTerminal",
             "cwd": "${fileDirname}/../"
         }

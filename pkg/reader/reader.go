@@ -61,7 +61,6 @@ func (reader *Reader) Reader_readDataPatch() []byte {
 	}
 	reader.ReadSymbolsCounter = readCounter
 	reader.counter += readCounter
-	fmt.Println(reader.counter)
 	return symbols
 }
 
