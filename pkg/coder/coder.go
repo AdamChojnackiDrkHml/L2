@@ -89,13 +89,14 @@ func (coder *Coder) code() {
 			//fmt.Println(d.String())
 			// fmt.Println(coder.probsF)
 			// fmt.Println(coder.probsF[int(n)+1])
-			p = l + (coder.probsF[int(n)+1] * float64(d))
-			//fmt.Println(p.String())
 
+			//fmt.Println(p.String())
+			p = l + (coder.probsF[int(n)+1] * float64(d))
 			l = l + (coder.probsF[int(n)] * float64(d))
+
 			//fmt.Println(l.String())
 			for {
-				if p < 0.5 {
+				if p <= 0.5 {
 					l = l * 2.0
 					p = p * 2.0
 

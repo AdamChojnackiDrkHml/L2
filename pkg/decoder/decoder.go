@@ -81,7 +81,7 @@ func (decoder *Decoder) decode() {
 
 		for patchSize != 0 && decoder.numOfSymbols > 0 {
 
-			if p < 0.5 {
+			if p <= 0.5 {
 				l = l * 2.0
 				p = p * 2.0
 				decoder.deleteFromBuffer(1 + counter)
@@ -204,9 +204,7 @@ func (decoder *Decoder) findSymbolWithProbs(tag, l, p float64) (byte, float64, f
 	for i := range decoder.counterSymbols {
 		high := l + (decoder.probsF[i+1] * d)
 		low := l + (decoder.probsF[i] * d)
-		if i == 98 {
-			fmt.Println(high, " ", low)
-		}
+
 		if tag < high && tag >= low {
 			return byte(i), low, high
 		}
