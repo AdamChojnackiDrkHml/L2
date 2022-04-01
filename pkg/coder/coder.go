@@ -1,7 +1,6 @@
 package coder
 
 import (
-	"encoding/binary"
 	"fmt"
 	"l2/pkg/reader"
 	"l2/pkg/writer"
@@ -71,10 +70,6 @@ func (coder *Coder) getData() {
 	coder.lastPatch = !coder.reader.IsReading
 }
 
-func (coder *Coder) writeCode() {
-	coder.writer.Writer_writeToFile(strconv.Itoa(len(coder.currentPatch)) + " " + fmt.Sprintf("%f", coder.tag) + "\n")
-}
-
 func (coder *Coder) writeBytesBuffer() {
 	coder.writer.Writer_writeToFile(coder.w)
 }
@@ -134,18 +129,15 @@ func (coder *Coder) code() {
 	temp = temp / 2
 
 	coder.tag = l + temp
-	tagBits := float64ToByte(coder.tag)
-
-	for _, n := range tagBits {
-		coder.addToBuffer(n)
-
-		if n == 1 {
-			break
-		}
-	}
 
 	for len(coder.bitBuffer) != 0 {
+		coder.tag *= 2
+		if coder.tag >= 1 {
+			coder.addToBuffer(1)
+			continue
+		}
 		coder.addToBuffer(0)
+
 	}
 
 	if len(coder.bytesBuffer) != 0 {
@@ -156,12 +148,6 @@ func (coder *Coder) code() {
 
 }
 
-func float64ToByte(f float64) []byte {
-	var buf [8]byte
-	binary.BigEndian.PutUint64(buf[:], math.Float64bits(f))
-	return buf[:]
-}
-
 func (coder *Coder) addToBuffer(bit byte) {
 	coder.bitBuffer = append(coder.bitBuffer, bit)
 
@@ -169,6 +155,10 @@ func (coder *Coder) addToBuffer(bit byte) {
 		coder.addBitsToByteBuffer()
 		coder.bitBuffer = make([]byte, 0)
 	}
+}
+
+func (coder *Coder) writeCode() {
+	coder.writer.Writer_writeToFile(coder.w)
 }
 
 func (coder *Coder) addBitsToByteBuffer() {
@@ -216,11 +206,18 @@ func caseThreeCondtionCheck(l, p float64) bool {
 	return true
 }
 
+func (coder *Coder) writeSize() {
+	size := coder.reader.ReadWholeFileGetSizeAndResetReader()
+
+	coder.w = strconv.FormatInt(size, 10) + " "
+	coder.writeCode()
+	coder.w = ""
+}
+
 func (coder *Coder) Coder_run() {
-	for !coder.lastPatch {
-		coder.getData()
-		coder.code()
-	}
+	coder.writeSize()
+	coder.code()
+
 }
 
 func (coder *Coder) Coder_scanFile(path string) {
