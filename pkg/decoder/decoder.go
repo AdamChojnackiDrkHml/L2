@@ -23,6 +23,7 @@ type Decoder struct {
 	m              int
 	bytesBuffer    []byte
 	toWrite        string
+	probs          []float64
 }
 
 func Decoder_createDecoder(reader *reader.Reader, writer *writer.Writer) *Decoder {
@@ -35,24 +36,33 @@ func Decoder_createDecoder(reader *reader.Reader, writer *writer.Writer) *Decode
 		lastPatch:      false,
 		bytesBuffer:    make([]byte, 0)}
 
-	for i := range decoder.counterSymbols {
-		decoder.counterSymbols[i] = 1
+	s := []byte("sdcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvipabcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvip234t56kqoi2jf9ojn-349unhv-943qv9nq-v93m4-v9v-934")
+	for _, n := range s {
+		decoder.counterSymbols[n]++
 	}
 
-	singleProb := 1.0 / 256.0
-	for i := range decoder.probsF {
-		decoder.probsF[i] = singleProb * float64(i)
+	for i := range decoder.counterSymbols {
+		decoder.counterSymbols[i]++
 	}
+
+	decoder.probs = make([]float64, 0)
+	all := len(decoder.counterSymbols) + len(s)
+
+	for _, n := range decoder.counterSymbols {
+		decoder.probs = append(decoder.probs, float64(n)/float64(all))
+	}
+
+	decoder.probsF[0] = 0.0
+	for i := 1; i < len(decoder.probsF); i++ {
+		decoder.probsF[i] = decoder.probsF[i-1] + decoder.probs[i-1]
+		//fmt.Println(coder.probsF[i].String())
+	}
+	fmt.Println(decoder.probsF)
 	return decoder
 }
 
 func (decoder *Decoder) calcProbs() {
-	currentPatch := decoder.currentPatch
 	decoder.iterations++
-
-	for _, n := range currentPatch {
-		decoder.counterSymbols[n]++
-	}
 
 	allSymbolsCounter := int64(decoder.iterations+1) * int64(decoder.reader.PatchSize)
 
@@ -67,16 +77,15 @@ func (decoder *Decoder) calcProbs() {
 
 func (decoder *Decoder) decode() {
 
-	decoder.m = int(math.Ceil(math.Log2(1/decoder.probsF[1]))) + 3
+	decoder.calcM()
 	decoder.getMBitsToBuffer()
-	fTag := getFloatFromBits(decoder.currTag)
 	currChar := byte(0)
 	l := 0.0
 	p := 1.0
 
 	counter := 0
 
-	for decoder.reader.IsReading && decoder.numOfSymbols > 0 {
+	for decoder.numOfSymbols > 0 {
 		patchSize := 256
 
 		for patchSize != 0 && decoder.numOfSymbols > 0 {
@@ -97,7 +106,8 @@ func (decoder *Decoder) decode() {
 				p = (p * 2.0) - 0.5
 				counter++
 			} else {
-				fTag = getFloatFromBits(decoder.currTag)
+
+				fTag := getFloatFromBits(decoder.currTag)
 				currChar, l, p = decoder.findSymbolWithProbs(fTag, l, p)
 				decoder.addByteToBuffer(currChar)
 				patchSize--
@@ -115,26 +125,29 @@ func (decoder *Decoder) decode() {
 }
 
 func (decoder *Decoder) calcM() {
-	minProbs := decoder.probsF[1]
-	for i := range decoder.counterSymbols {
-		if decoder.probsF[i+1]-decoder.probsF[i] < minProbs {
-			minProbs = decoder.probsF[i+1] - decoder.probsF[i]
+	minProbs := 1.0
+	for i := range decoder.probs {
+
+		if decoder.probs[i] != 0.0 && decoder.probs[i] < minProbs {
+			minProbs = decoder.probs[i]
 		}
 	}
 
 	newM := int(math.Ceil(math.Log2(1/minProbs))) + 3
 
 	if newM < decoder.m {
+		decoder.m = newM
 		decoder.remOfBit = append(decoder.currTag[decoder.m:], decoder.remOfBit...)
 		decoder.currTag = decoder.currTag[:decoder.m]
 	} else {
+		decoder.m = newM
 		decoder.getMBitsToBuffer()
 	}
 }
 
 func (decoder *Decoder) addByteToBuffer(myByte byte) {
 	decoder.bytesBuffer = append(decoder.bytesBuffer, myByte)
-
+	decoder.counterSymbols[myByte]++
 	if len(decoder.bytesBuffer) == 256 {
 		decoder.toWrite = string(decoder.bytesBuffer)
 		decoder.writeCode()
@@ -186,6 +199,7 @@ func (decoder *Decoder) getMBitsToBuffer() {
 	decoder.remOfBit = splitByteToBits(myByte)
 
 	for len(decoder.currTag) != decoder.m && decoder.reader.IsReading {
+		// fmt.Println(decoder.m, len(decoder.currTag))
 		if decoder.m-len(decoder.currTag) >= 8 {
 			decoder.currTag = append(decoder.currTag, decoder.remOfBit...)
 			myByte = decoder.reader.Reader_readByte()
@@ -213,6 +227,12 @@ func (decoder *Decoder) findSymbolWithProbs(tag, l, p float64) (byte, float64, f
 }
 
 func (decoder *Decoder) deleteFromBuffer(toDelete int) {
+	for toDelete > len(decoder.currTag) {
+
+		decoder.deleteFromBuffer(len(decoder.currTag))
+		toDelete = toDelete - len(decoder.currTag)
+
+	}
 	decoder.currTag = decoder.currTag[toDelete:]
 	decoder.getMBitsToBuffer()
 }

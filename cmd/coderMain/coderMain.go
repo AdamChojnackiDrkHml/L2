@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"l2/pkg/coder"
 	"l2/pkg/reader"
 	"l2/pkg/writer"
@@ -27,9 +26,9 @@ func main() {
 
 	writerA.CloseFile()
 
-	f1, _ := os.Stat(os.Args[1])
-	f2, _ := os.Stat(os.Args[2])
-	fmt.Println("Stopień kompresji: ", float64(100.0*(1.0-float64(f2.Size())/float64(f1.Size()))))
-	coder.Coder_scanFile(os.Args[1])
-	// coder.Coder_avgCodingLenght()
+	// f1, _ := os.Stat(os.Args[1])
+	// f2, _ := os.Stat(os.Args[2])
+	// fmt.Println("Stopień kompresji: ", float64(100.0*(1.0-float64(f2.Size())/float64(f1.Size()))))
+	// coder.Coder_scanFile(os.Args[1])
+	// // coder.Coder_avgCodingLenght()
 }

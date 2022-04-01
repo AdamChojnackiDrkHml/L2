@@ -34,14 +34,27 @@ func Coder_createCoder(reader *reader.Reader, writer *writer.Writer) *Coder {
 		bitBuffer:      make([]byte, 0),
 		bytesBuffer:    make([]byte, 0)}
 
+	s := []byte("sdcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvipabcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvip234t56kqoi2jf9ojn-349unhv-943qv9nq-v93m4-v9v-934")
+	for _, n := range s {
+		coder.counterSymbols[n]++
+	}
 	for i := range coder.counterSymbols {
-		coder.counterSymbols[i] = 1
+		coder.counterSymbols[i]++
 	}
 
-	singleProb := 1.0 / 256.0
-	for i := range coder.probsF {
-		coder.probsF[i] = singleProb * float64(i)
+	probs := make([]float64, 0)
+	all := len(coder.counterSymbols) + len(s)
+
+	for _, n := range coder.counterSymbols {
+		probs = append(probs, float64(n)/float64(all))
 	}
+
+	coder.probsF[0] = 0.0
+	for i := 1; i < len(coder.probsF); i++ {
+		coder.probsF[i] = coder.probsF[i-1] + probs[i-1]
+		//fmt.Println(coder.probsF[i].String())
+	}
+	fmt.Println(coder.probsF)
 
 	return coder
 }
@@ -53,7 +66,6 @@ func (coder *Coder) calcProbs() {
 	for _, n := range currentPatch {
 		coder.counterSymbols[n]++
 	}
-
 	allSymbolsCounter := int64(coder.iterations+1) * int64(coder.reader.PatchSize)
 
 	coder.probsF[0] = 0.0
@@ -135,6 +147,7 @@ func (coder *Coder) code() {
 		coder.tag *= 2
 		if coder.tag >= 1 {
 			coder.addToBuffer(1)
+			coder.tag -= 1
 			continue
 		}
 		coder.addToBuffer(0)
