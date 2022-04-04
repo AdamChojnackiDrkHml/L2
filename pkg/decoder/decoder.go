@@ -36,17 +36,17 @@ func Decoder_createDecoder(reader *reader.Reader, writer *writer.Writer) *Decode
 		lastPatch:      false,
 		bytesBuffer:    make([]byte, 0)}
 
-	s := []byte("sdcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvipabcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvip234t56kqoi2jf9ojn-349unhv-943qv9nq-v93m4-v9v-934")
-	for _, n := range s {
-		decoder.counterSymbols[n]++
-	}
+	// s := []byte("sdcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvipabcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvip234t56kqoi2jf9ojn-349unhv-943qv9nq-v93m4-v9v-934")
+	// for _, n := range s {
+	// 	decoder.counterSymbols[n]++
+	// }
 
 	for i := range decoder.counterSymbols {
 		decoder.counterSymbols[i]++
 	}
 
 	decoder.probs = make([]float64, 0)
-	all := len(decoder.counterSymbols) + len(s)
+	all := len(decoder.counterSymbols)
 
 	for _, n := range decoder.counterSymbols {
 		decoder.probs = append(decoder.probs, float64(n)/float64(all))
@@ -57,7 +57,6 @@ func Decoder_createDecoder(reader *reader.Reader, writer *writer.Writer) *Decode
 		decoder.probsF[i] = decoder.probsF[i-1] + decoder.probs[i-1]
 		//fmt.Println(coder.probsF[i].String())
 	}
-	fmt.Println(decoder.probsF)
 	return decoder
 }
 
@@ -72,7 +71,7 @@ func (decoder *Decoder) calcProbs() {
 		decoder.probsF[i] = decoder.probsF[i-1] + temp
 		//fmt.Println(coder.probsF[i].String())
 	}
-
+	fmt.Println(decoder.probsF)
 }
 
 func (decoder *Decoder) decode() {
@@ -88,7 +87,7 @@ func (decoder *Decoder) decode() {
 	for decoder.numOfSymbols > 0 {
 		patchSize := 256
 
-		for patchSize != 0 && decoder.numOfSymbols > 0 {
+		for patchSize > 0 && decoder.numOfSymbols > 0 {
 
 			if p <= 0.5 {
 				l = l * 2.0
@@ -119,7 +118,7 @@ func (decoder *Decoder) decode() {
 		decoder.calcM()
 		decoder.getMBitsToBuffer()
 	}
-
+	fmt.Println(decoder.numOfSymbols)
 	decoder.toWrite = string(decoder.bytesBuffer)
 	decoder.writeCode()
 }
@@ -136,12 +135,10 @@ func (decoder *Decoder) calcM() {
 	newM := int(math.Ceil(math.Log2(1/minProbs))) + 3
 
 	if newM < decoder.m {
-		decoder.m = newM
-		decoder.remOfBit = append(decoder.currTag[decoder.m:], decoder.remOfBit...)
-		decoder.currTag = decoder.currTag[:decoder.m]
+		return
 	} else {
 		decoder.m = newM
-		decoder.getMBitsToBuffer()
+
 	}
 }
 

@@ -34,16 +34,12 @@ func Coder_createCoder(reader *reader.Reader, writer *writer.Writer) *Coder {
 		bitBuffer:      make([]byte, 0),
 		bytesBuffer:    make([]byte, 0)}
 
-	s := []byte("sdcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvipabcdesadfgasdgjnweal;fweailpfnbwaipvmw3qogn3qinbnfvpSIDvbw8rbnvwiaprnvbwabviwpanvipwsuavbwsarbvwiaprbvip234t56kqoi2jf9ojn-349unhv-943qv9nq-v93m4-v9v-934")
-	for _, n := range s {
-		coder.counterSymbols[n]++
-	}
 	for i := range coder.counterSymbols {
 		coder.counterSymbols[i]++
 	}
 
 	probs := make([]float64, 0)
-	all := len(coder.counterSymbols) + len(s)
+	all := len(coder.counterSymbols)
 
 	for _, n := range coder.counterSymbols {
 		probs = append(probs, float64(n)/float64(all))
@@ -54,7 +50,7 @@ func Coder_createCoder(reader *reader.Reader, writer *writer.Writer) *Coder {
 		coder.probsF[i] = coder.probsF[i-1] + probs[i-1]
 		//fmt.Println(coder.probsF[i].String())
 	}
-	fmt.Println(coder.probsF)
+	// fmt.Println(coder.probsF)
 
 	return coder
 }
@@ -74,7 +70,7 @@ func (coder *Coder) calcProbs() {
 		coder.probsF[i] = coder.probsF[i-1] + temp
 		//fmt.Println(coder.probsF[i].String())
 	}
-
+	fmt.Println(coder.probsF)
 }
 
 func (coder *Coder) getData() {
