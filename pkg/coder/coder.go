@@ -2,230 +2,102 @@ package coder
 
 import (
 	"fmt"
+	"l2/pkg/dictionary"
 	"l2/pkg/reader"
+	unicode "l2/pkg/uniCode"
 	"l2/pkg/writer"
 	"math"
 	"os"
-	"strconv"
 )
 
 type Coder struct {
-	reader         *reader.Reader
-	writer         *writer.Writer
-	probsF         []float64
-	counterSymbols []int64
-	iterations     int
-	currentPatch   []byte
-	lastPatch      bool
-	tag            float64
-	w              string
-	bitBuffer      []byte
-	bytesBuffer    []byte
+	reader  *reader.Reader
+	writer  *writer.Writer
+	dict    *dictionary.Dictionary
+	uniCode unicode.UniCode
 }
 
-func Coder_createCoder(reader *reader.Reader, writer *writer.Writer) *Coder {
-	coder := &Coder{reader: reader,
-		writer:         writer,
-		probsF:         make([]float64, 257),
-		counterSymbols: make([]int64, 256),
-		iterations:     0,
-		currentPatch:   make([]byte, 0),
-		lastPatch:      false,
-		bitBuffer:      make([]byte, 0),
-		bytesBuffer:    make([]byte, 0)}
+func Coder_createDefaultCoder(reader *reader.Reader, writer *writer.Writer) *Coder {
+	return Coder_createCoder(reader, writer, unicode.Omega)
+}
 
-	for i := range coder.counterSymbols {
-		coder.counterSymbols[i]++
+func Coder_createCoder(reader *reader.Reader, writer *writer.Writer, coding unicode.Coding) *Coder {
+	coder := &Coder{
+		reader: reader,
+		writer: writer,
+		dict:   dictionary.Dictionary_CreateDictionary()}
+
+	switch coding {
+	case unicode.Gamma:
+		{
+			coder.uniCode = unicode.EliasGamma_Create(reader)
+		}
+	case unicode.Delta:
+		{
+			coder.uniCode = unicode.EliasDelta_Create(reader)
+		}
+	case unicode.Omega:
+		{
+			coder.uniCode = unicode.EliasOmega_Create(reader)
+		}
+	case unicode.Fib:
+		{
+			coder.uniCode = unicode.Fibonacci_Create(reader)
+		}
 	}
-
-	probs := make([]float64, 0)
-	all := len(coder.counterSymbols)
-
-	for _, n := range coder.counterSymbols {
-		probs = append(probs, float64(n)/float64(all))
-	}
-
-	coder.probsF[0] = 0.0
-	for i := 1; i < len(coder.probsF); i++ {
-		coder.probsF[i] = coder.probsF[i-1] + probs[i-1]
-		//fmt.Println(coder.probsF[i].String())
-	}
-	// fmt.Println(coder.probsF)
 
 	return coder
 }
 
-func (coder *Coder) calcProbs() {
-	currentPatch := coder.currentPatch
-	coder.iterations++
-
-	for _, n := range currentPatch {
-		coder.counterSymbols[n]++
-	}
-	allSymbolsCounter := int64(coder.iterations+1) * int64(coder.reader.PatchSize)
-
-	coder.probsF[0] = 0.0
-	for i := 1; i < len(coder.counterSymbols); i++ {
-		temp := float64(coder.counterSymbols[i-1]) / float64(allSymbolsCounter)
-		coder.probsF[i] = coder.probsF[i-1] + temp
-		//fmt.Println(coder.probsF[i].String())
-	}
-	fmt.Println(coder.probsF)
-}
-
-func (coder *Coder) getData() {
-	coder.currentPatch = coder.reader.Reader_readDataPatch()
-	coder.lastPatch = !coder.reader.IsReading
-}
-
-func (coder *Coder) writeBytesBuffer() {
-	coder.writer.Writer_writeToFile(coder.w)
-}
-
 func (coder *Coder) code() {
 
-	l := 0.0
-	p := 1.0
-	counter := 0
-	// iterations := 0
-	for !coder.lastPatch {
-		coder.getData()
-		// fmt.Println(iterations)
-		// iterations++
-		for _, n := range coder.currentPatch {
-			d := p - l
-			//fmt.Println(d.String())
-			// fmt.Println(coder.probsF)
-			// fmt.Println(coder.probsF[int(n)+1])
+	first, err := coder.reader.Reader_readByte()
 
-			//fmt.Println(p.String())
-			p = l + (coder.probsF[int(n)+1] * float64(d))
-			l = l + (coder.probsF[int(n)] * float64(d))
-
-			//fmt.Println(l.String())
-			for {
-				if p <= 0.5 {
-					l = l * 2.0
-					p = p * 2.0
-
-					coder.addToBuffer(0)
-					for counter > 0 {
-						coder.addToBuffer(1)
-						counter--
-					}
-
-				} else if l >= 0.5 {
-					l = (l * 2.0) - 1.0
-					p = (p * 2.0) - 1.0
-					coder.addToBuffer(1)
-					for counter > 0 {
-						coder.addToBuffer(0)
-						counter--
-					}
-				} else if caseThreeCondtionCheck(l, p) {
-					l = (l * 2.0) - 0.5
-					p = (p * 2.0) - 0.5
-					counter++
-				} else {
-					break
-				}
-			}
-		}
-		coder.calcProbs()
-
+	if err != nil {
+		return
 	}
-	temp := p - l
-	temp = temp / 2
 
-	coder.tag = l + temp
+	c := make([]byte, 0)
+	c = append(c, first)
 
-	for len(coder.bitBuffer) != 0 {
-		coder.tag *= 2
-		if coder.tag >= 1 {
-			coder.addToBuffer(1)
-			coder.tag -= 1
+	for {
+		s, err := coder.reader.Reader_readByte()
+
+		if err != nil {
+			break
+		}
+
+		if coder.dict.Dictionary_IsContained(append(c, s)) {
+			c = append(c, s)
 			continue
 		}
-		coder.addToBuffer(0)
+
+		codeInt := coder.dict.Dictionary_GetVal(c)
+		codeBits := coder.uniCode.CodeNumber(codeInt)
+		coder.writer.Writer_addBits(codeBits)
+
+		coder.dict.Dictionary_AddKey(append(c, s))
+
+		c = []byte{s}
 
 	}
+	codeInt := coder.dict.Dictionary_GetVal(c)
+	codeBits := coder.uniCode.CodeNumber(codeInt)
+	coder.writer.Writer_addBits(codeBits)
 
-	if len(coder.bytesBuffer) != 0 {
-		coder.w = string(coder.bytesBuffer)
-		coder.writeBytesBuffer()
-		coder.bytesBuffer = make([]byte, 0)
-	}
-
+	coder.writer.Writer_Flush()
 }
 
-func (coder *Coder) addToBuffer(bit byte) {
-	coder.bitBuffer = append(coder.bitBuffer, bit)
+// func (coder *Coder) writeSize() {
+// 	size := coder.reader.ReadWholeFileGetSizeAndResetReader()
 
-	if len(coder.bitBuffer) == 8 {
-		coder.addBitsToByteBuffer()
-		coder.bitBuffer = make([]byte, 0)
-	}
-}
-
-func (coder *Coder) writeCode() {
-	coder.writer.Writer_writeToFile(coder.w)
-}
-
-func (coder *Coder) addBitsToByteBuffer() {
-
-	acc := byte(0)
-
-	for _, n := range coder.bitBuffer {
-		acc *= 2
-		acc += n
-	}
-
-	coder.addByteToBuffer(acc)
-	coder.bitBuffer = make([]byte, 0)
-
-}
-
-func (coder *Coder) addByteToBuffer(myByte byte) {
-
-	coder.bytesBuffer = append(coder.bytesBuffer, myByte)
-
-	if len(coder.bytesBuffer) == 256 {
-		coder.w = string(coder.bytesBuffer)
-		coder.writeBytesBuffer()
-		coder.bytesBuffer = make([]byte, 0)
-	}
-}
-
-func caseThreeCondtionCheck(l, p float64) bool {
-	if p <= 0.5 {
-		return false
-	}
-
-	if l >= 0.5 {
-		return false
-	}
-
-	if p >= 0.75 {
-		return false
-	}
-
-	if l < 0.25 {
-		return false
-	}
-
-	return true
-}
-
-func (coder *Coder) writeSize() {
-	size := coder.reader.ReadWholeFileGetSizeAndResetReader()
-
-	coder.w = strconv.FormatInt(size, 10) + " "
-	coder.writeCode()
-	coder.w = ""
-}
+// 	coder.w = strconv.FormatInt(size, 10) + " "
+// 	coder.writeCode()
+// 	coder.w = ""
+// }
 
 func (coder *Coder) Coder_run() {
-	coder.writeSize()
+	// coder.writeSize()
 	coder.code()
 
 }
